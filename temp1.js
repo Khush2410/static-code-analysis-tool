@@ -3,3 +3,4 @@ var hello = "like"
 console.log(name)  // Using console.log
 console.log(hello);
 console.log(hey);
+console.log(how);
