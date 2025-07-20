@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:18'
-            args '-u root:root' // ensures root permissions for the container
-        }
-    }
+    agent any
 
     options {
         skipDefaultCheckout true
@@ -27,6 +22,10 @@ pipeline {
         )
     }
 
+    environment {
+        NODE_VERSION = "18.17.1"
+    }
+
     stages {
         stage('Checkout Code') {
             steps {
@@ -35,13 +34,19 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Setup Node and Dependencies') {
             steps {
                 sh '''
+                    echo "Installing Node.js..."
+
+                    # Clean environment installation of Node.js (without apt)
+                    curl -fsSL https://deb.nodesource.com/setup_$NODE_VERSION.x | bash -
+                    apt-get install -y nodejs make
+
                     echo "Node version:"
                     node -v
 
-                    echo "NPM version:"
+                    echo "npm version:"
                     npm -v
 
                     echo "Installing npm packages..."
