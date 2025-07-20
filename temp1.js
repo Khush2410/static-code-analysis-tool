@@ -1,0 +1,11 @@
+var name = "jerry"  // Using var and double quotes
+var hello = "like"  
+console.log(name)  // Using console.log
+console.log(hello);
+var a = 2
+var b = 3
+var c = 4
+var e = 9
+var t = ''
+var i = 2
+console.log(j)
