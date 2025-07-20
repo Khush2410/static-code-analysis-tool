@@ -5,3 +5,5 @@ console.log(hello);
 var a = 2
 var b = 3
 var c = 4
+var e = 9
+var t = ''
