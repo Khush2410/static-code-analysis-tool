@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'node:18'
+            args '-u root:root' // ensures root permissions for the container
+        }
+    }
 
     options {
         skipDefaultCheckout true
@@ -33,29 +38,13 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh '''
-                    echo "[+] Checking environment..."
-                    
                     echo "Node version:"
-                    node -v || echo "Node not found"
+                    node -v
 
                     echo "NPM version:"
-                    npm -v || echo "NPM not found"
+                    npm -v
 
-                    echo "Make version:"
-                    make -v || echo "Make not found"
-
-                    # Try to install make ONLY if it's missing and agent has apt-get and is root
-                    if ! command -v make >/dev/null; then
-                      if [ "$(id -u)" -eq 0 ] && command -v apt-get >/dev/null; then
-                        echo "Installing make..."
-                        apt-get update && apt-get install -y make
-                      else
-                        echo "[ERROR] 'make' not found and cannot install it (not root or no apt-get)."
-                        exit 1
-                      fi
-                    fi
-
-                    echo "[+] Installing Node dependencies..."
+                    echo "Installing npm packages..."
                     npm install
                 '''
             }
