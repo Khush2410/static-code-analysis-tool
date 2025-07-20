@@ -8,4 +8,3 @@ var c = 4
 var e = 9
 var t = ''
 var i = 2
-console.log(j)
