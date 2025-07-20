@@ -7,4 +7,3 @@ var b = 3
 var c = 4
 var e = 9
 var t = ''
-var i = 2
