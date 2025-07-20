@@ -1,17 +1,11 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:18' // This has npm, node, and make
-        }
-    }
+    agent any
 
     options {
-        // Keeps the build history cleaner on GitHub
         skipDefaultCheckout true
     }
 
     triggers {
-        // This is the correct way to define the trigger
         GenericTrigger(
             genericVariables: [
                 [key: 'ref', value: '$.ref'],
@@ -19,13 +13,10 @@ pipeline {
                 [key: 'pr_number', value: '$.number'],
                 [key: 'action', value: '$.action']
             ],
-            // This token MUST match the one in your GitHub webhook URL
             token: 'a-very-secret-string',
-            // Filter for PR events only
             causeString: 'Triggered by GitHub PR #${pr_number}',
             printPostContent: true,
             printContributedVariables: true,
-            // Trigger on PR open or code changes
             regexpFilterText: '$action',
             regexpFilterExpression: '^(opened|reopened|synchronize)$'
         )
@@ -34,10 +25,30 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                // Manually checkout the PR branch
                 checkout scm
-                // Update the build status to "pending" on GitHub
                 githubNotify context: 'ESLint-Check', status: 'PENDING'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                    echo "[+] Installing dependencies..."
+
+                    # Try to install make if it's not present
+                    if ! command -v make >/dev/null; then
+                      echo "Installing make..."
+                      sudo apt-get update && sudo apt-get install -y make
+                    fi
+
+                    # Check for node and npm
+                    if ! command -v node >/dev/null || ! command -v npm >/dev/null; then
+                      echo "Node.js or npm not found. Please preinstall Node.js on this agent."
+                      exit 1
+                    fi
+
+                    npm install
+                '''
             }
         }
 
@@ -45,14 +56,10 @@ pipeline {
             steps {
                 script {
                     try {
-                        // Your build command from the Makefile
                         sh 'make ci'
-                        // If 'make ci' succeeds, update status to "success"
                         githubNotify context: 'ESLint-Check', status: 'SUCCESS'
                     } catch (Exception e) {
-                        // If 'make ci' fails, update status to "failed"
                         githubNotify context: 'ESLint-Check', status: 'FAILURE'
-                        // Fail the pipeline
                         error "ESLint checks failed: ${e.getMessage()}"
                     }
                 }
