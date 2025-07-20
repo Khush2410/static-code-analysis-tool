@@ -3,4 +3,4 @@ var hello = "like"
 console.log(name)  // Using console.log
 console.log(hello);
 var a = 2
-
+var b = 3
