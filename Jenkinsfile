@@ -33,20 +33,29 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh '''
-                    echo "[+] Installing dependencies..."
+                    echo "[+] Checking environment..."
+                    
+                    echo "Node version:"
+                    node -v || echo "Node not found"
 
-                    # Try to install make if it's not present
+                    echo "NPM version:"
+                    npm -v || echo "NPM not found"
+
+                    echo "Make version:"
+                    make -v || echo "Make not found"
+
+                    # Try to install make ONLY if it's missing and agent has apt-get and is root
                     if ! command -v make >/dev/null; then
-                      echo "Installing make..."
-                      sudo apt-get update && sudo apt-get install -y make
+                      if [ "$(id -u)" -eq 0 ] && command -v apt-get >/dev/null; then
+                        echo "Installing make..."
+                        apt-get update && apt-get install -y make
+                      else
+                        echo "[ERROR] 'make' not found and cannot install it (not root or no apt-get)."
+                        exit 1
+                      fi
                     fi
 
-                    # Check for node and npm
-                    if ! command -v node >/dev/null || ! command -v npm >/dev/null; then
-                      echo "Node.js or npm not found. Please preinstall Node.js on this agent."
-                      exit 1
-                    fi
-
+                    echo "[+] Installing Node dependencies..."
                     npm install
                 '''
             }
